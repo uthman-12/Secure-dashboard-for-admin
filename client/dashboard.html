@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/dashboard.png" type="image/png">
+  <style>
+    /* Keep your CSS exactly as you already have it */
+    /* ... your sidebar, layout, cards, responsive styles, etc ... */
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <h2>Admin</h2>
+      <ul>
+        <li><a href="dashboard.html" class="active">Dashboard</a></li>
+        <li><a href="users.html">Users</a></li>
+        <li><a href="logs.html">Logs</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" id="logout" class="logout">Logout</a></li>
+      </ul>
+    </aside>
+    <div class="main">
+      <header class="navbar">
+        <h1>Dashboard</h1>
+        <span id="welcome-user"></span>
+      </header>
+      <main class="main-content">
+        <section class="cards">
+          <div class="card"><span>Users</span><strong id="users-count">0</strong></div>
+          <div class="card"><span>Logs</span><strong id="logs-count">0</strong></div>
+          <div class="card"><span>Errors</span><strong id="errors-count" style="color:#dc3545;">0</strong></div>
+        </section>
+        <section>
+          <h2 class="section-title">Recent Logs</h2>
+          <ul id="logs-list" class="logs-list"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="particles-bg"></div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = "index.html";
+    }
+
+    const headers = {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    };
+
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/api/me', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('welcome-user').textContent = `Welcome, ${data.username}`;
+        } else {
+          throw new Error();
+        }
+      } catch {
+        localStorage.removeItem('token');
+        window.location.href = "index.html";
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats', { headers });
+        if (!res.ok) throw new Error();
+        const stats = await res.json();
+        document.getElementById('users-count').textContent = stats.users || 0;
+        document.getElementById('logs-count').textContent = stats.logs || 0;
+        document.getElementById('errors-count').textContent = stats.errors || 0;
+      } catch (err) {
+        console.error('Failed to fetch stats', err);
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/dashboard/logs', { headers });
+        if (!res.ok) throw new Error();
+        const logs = await res.json();
+        const logsList = document.getElementById('logs-list');
+        logsList.innerHTML = '';
+
+        if (!logs.length) {
+          logsList.innerHTML = '<li style="color:#888;">No logs yet.</li>';
+          return;
+        }
+
+        logs.slice(0, 10).forEach(log => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span>${escapeHTML(log.action)}</span> 
+            <span style="color:#888;font-size:0.97em;">(${escapeHTML(log.user)} - ${new Date(log.time).toLocaleString()})</span>`;
+          logsList.appendChild(li);
+        });
+      } catch (err) {
+        console.error('Failed to fetch logs', err);
+      }
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[match]);
+    }
+
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = "index.html";
+    });
+
+    fetchCurrentUser();
+    fetchStats();
+    fetchLogs();
+  </script>
+
+  <style>
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Orbitron', sans-serif;
+    background: #0b0f1a;
+    color: #fff;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Dashboard Layout */
+  .dashboard {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background: rgba(35, 39, 43, 0.4);
+    backdrop-filter: blur(15px);
+    color: #fff;
+    padding: 32px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 0 20px rgba(0,249,255,0.1);
+  }
+
+  .sidebar h2 {
+    margin-bottom: 36px;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    color: #00f0ff;
+    text-shadow: 0 0 5px rgba(0,255,255,0.5);
+  }
+
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .sidebar ul li a {
+    display: block;
+    padding: 16px 36px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar ul li a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(to bottom, #00eaff, #00ff99);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar ul li a.active::before,
+  .sidebar ul li a:hover::before {
+    transform: scaleY(1);
+  }
+
+  .sidebar ul li a.active,
+  .sidebar ul li a:hover {
+    background: rgba(0, 255, 255, 0.1);
+    border-left-color: #00eaff;
+    color: #00eaff;
+    box-shadow: inset 0 0 10px rgba(0,255,255,0.2);
+  }
+
+  .sidebar ul li a.logout {
+    color: #ff4b6e;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .sidebar ul li a.logout:hover,
+  .sidebar ul li a.logout:focus {
+    background: rgba(255, 75, 110, 0.08);
+    color: #fff;
+    box-shadow: inset 0 0 10px rgba(255,75,110,0.15);
+  }
+
+  /* Main Area */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .navbar {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    padding: 24px 40px 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 2px 16px rgba(0, 234, 255, 0.06);
+  }
+
+  .navbar h1 {
+    margin: 0;
+    font-size: 2.3rem;
+    color: #00f0ff;
+    text-shadow: 0 0 8px rgba(0,234,255,0.6);
+  }
+
+  .main-content {
+    flex: 1;
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Cards */
+  .cards {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    padding: 36px 54px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 234, 255, 0.1);
+    font-size: 1.2rem;
+    min-width: 160px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+    animation: fadeSlide 0.6s ease forwards;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 234, 255, 0.2);
+  }
+
+  .card span {
+    color: #aaa;
+    font-size: 1.1rem;
+  }
+
+  .card strong {
+    font-size: 2.5rem;
+    margin-top: 8px;
+    color: #00ffdd;
+  }
+
+  .card strong[style*="color:#dc3545"] {
+    color: #ff4b6e !important;
+  }
+
+  /* Logs */
+  .logs-list {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(15px);
+    padding: 20px 24px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 24px rgba(0,234,255,0.08);
+    list-style: none;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 1.05rem;
+  }
+
+  .logs-list li {
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    animation: fadeSlide 0.5s ease forwards;
+  }
+
+  .logs-list li:last-child {
+    border-bottom: none;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+    color: #00eaff;
+    margin-bottom: 14px;
+    text-shadow: 0 0 3px rgba(0,255,255,0.3);
+  }
+
+  /* Particles Background */
+  .particles-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(#00eaff 1px, transparent 1px),
+      radial-gradient(#00ff99 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: 0 0, 40px 40px;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+    animation: moveBg 20s linear infinite;
+  }
+
+  @keyframes moveBg {
+    0% { background-position: 0 0, 40px 40px; }
+    100% { background-position: 80px 80px, 120px 120px; }
+  }
+
+  /* Entry Animation */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Visually Hidden */
+  .visually-hidden {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+  }
+
+  /* Responsive Tweaks */
+  @media (max-width: 900px) {
+    .cards {
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .main-content {
+      padding: 20px;
+    }
+
+    .card {
+      padding: 24px 18px;
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .dashboard {
+      flex-direction: column !important;
+    }
+
+    .sidebar {
+      width: 100%;
+      flex-direction: row !important;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      min-width: 0;
+      display: flex;
+    }
+
+    .sidebar h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0;
+      margin-left: 18px;
+    }
+
+    .sidebar ul {
+      display: flex;
+      flex-direction: row;
+      width: auto;
+      margin: 0;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      margin: 0 4px;
+    }
+
+    .sidebar ul li a,
+    .sidebar ul li a.logout {
+      padding: 10px 12px;
+      font-size: 0.97rem;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      width: auto;
+      min-width: 0;
+      text-align: center;
+      display: block;
+    }
+
+    .sidebar ul li a.active,
+    .sidebar ul li a:hover {
+      border-bottom: 2px solid #00eaff;
+      border-left: none;
+    }
+
+    .main-content {
+      padding: 10px;
+    }
+
+    .card {
+      padding: 16px 8px;
+      font-size: 1rem;
+      min-width: 0;
+    }
+
+    .logs-list {
+      padding: 10px 6px;
+      font-size: 0.97rem;
+    }
+  }
+</style>
+
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Admin Account</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/login.png" type="image/png">
+  <style>
+    /* your original styles stay the same */
+    /* ... */
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <form id="createAccountForm" autocomplete="off" aria-labelledby="createAccountHeading">
+      <h2 id="createAccountHeading">Create Admin Account</h2>
+
+      <div class="input-box">
+        <input type="text" id="Username" placeholder="Username" required aria-label="Username" minlength="3" />
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div class="input-box">
+        <input type="email" id="Email" placeholder="Email" required aria-label="Email" />
+        <i class="fa-solid fa-envelope"></i>
+      </div>
+
+      <div class="input-box">
+        <input type="password" id="Password" placeholder="Password" required minlength="8" aria-label="Password" />
+        <i class="fa-solid fa-lock"></i>
+      </div>
+
+      <div id="strengthMeter" aria-hidden="true">
+        <div id="strengthBar"></div>
+      </div>
+      <span id="strengthText" aria-live="polite"></span>
+
+      <div class="input-box">
+        <input type="password" id="ConfirmPassword" placeholder="Confirm Password" required aria-label="Confirm Password" />
+        <i class="fa-solid fa-lock"></i>
+      </div>
+
+      <div class="checkbox-container">
+        <input type="checkbox" id="showPassword" />
+        <label for="showPassword">Show Passwords</label>
+      </div>
+
+      <button type="submit" class="btn">
+        <span id="btnText">Create Account</span>
+        <span id="spinner" style="display:none;margin-left:8px;">
+          <i class="fa fa-spinner fa-spin"></i>
+        </span>
+      </button>
+
+      <div class="links">
+        <p>Already have an account? <a href="index.html">Login</a></p>
+      </div>
+
+      <p id="message" role="alert"></p>
+    </form>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("createAccountForm");
+    const message = document.getElementById("message");
+    const passwordInput = document.getElementById("Password");
+    const confirmInput = document.getElementById("ConfirmPassword");
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthText = document.getElementById("strengthText");
+    const submitBtn = form.querySelector(".btn");
+    const btnText = document.getElementById("btnText");
+    const spinner = document.getElementById("spinner");
+
+    // Password strength checker
+    passwordInput.addEventListener("input", () => {
+      const val = passwordInput.value;
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[a-z]/.test(val)) score++;
+      if (/\d/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const percent = (score / 5) * 100;
+      strengthBar.style.width = percent + "%";
+      if (score <= 2) {
+        strengthBar.style.background = "#ff4d4d";
+        strengthText.textContent = "Weak";
+      } else if (score === 3) {
+        strengthBar.style.background = "#ffc107";
+        strengthText.textContent = "Medium";
+      } else if (score >= 4) {
+        strengthBar.style.background = "#28a745";
+        strengthText.textContent = "Strong";
+      } else {
+        strengthText.textContent = "";
+      }
+    });
+
+    // Show/hide password
+    document.getElementById("showPassword").addEventListener("change", function () {
+      const type = this.checked ? "text" : "password";
+      passwordInput.type = type;
+      confirmInput.type = type;
+    });
+
+    // Form submission
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      btnText.textContent = "Creating...";
+      spinner.style.display = "inline-block";
+
+      const username = document.getElementById("Username").value.trim();
+      const email = document.getElementById("Email").value.trim().toLowerCase();
+      const password = passwordInput.value;
+      const confirmPassword = confirmInput.value;
+
+      message.textContent = "";
+      message.style.color = "#dc3545";
+
+      // Basic validation
+      if (!/^[\w.-]{3,}$/.test(username)) {
+        message.textContent = "Username must be at least 3 characters.";
+        submitBtn.disabled = false;
+        btnText.textContent = "Create Account";
+        spinner.style.display = "none";
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        message.textContent = "Invalid email address.";
+        submitBtn.disabled = false;
+        btnText.textContent = "Create Account";
+        spinner.style.display = "none";
+        return;
+      }
+      if (password !== confirmPassword) {
+        message.textContent = "Passwords do not match.";
+        submitBtn.disabled = false;
+        btnText.textContent = "Create Account";
+        spinner.style.display = "none";
+        return;
+      }
+      if (strengthText.textContent === "Weak" || password.length < 8) {
+        message.textContent = "Password is too weak.";
+        submitBtn.disabled = false;
+        btnText.textContent = "Create Account";
+        spinner.style.display = "none";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          message.style.color = "#28a745";
+          message.textContent = "Account created! Redirecting to login page...";
+          submitBtn.disabled = true;
+          btnText.textContent = "Redirecting...";
+          spinner.style.display = "inline-block";
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 2000);
+        } else {
+          message.textContent = data.message || "Registration failed.";
+        }
+      } catch (err) {
+        message.textContent = "Server error. Try again later.";
+        console.error(err);
+      }
+      submitBtn.disabled = false;
+      btnText.textContent = "Create Account";
+      spinner.style.display = "none";
+    });
+  });
+</script>
+
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #000c1f, #000000);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .wrapper {
+    width: 460px;
+    background: rgba(0, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.2);
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    padding: 45px 40px;
+    animation: zoomIn 0.6s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes zoomIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .wrapper::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00f9ff, #006eff, #0f0, #ff00ff);
+    z-index: -1;
+    filter: blur(20px);
+    opacity: 0.2;
+    border-radius: 20px;
+    animation: neonBorder 5s linear infinite;
+  }
+
+  @keyframes neonBorder {
+    0% {
+      filter: hue-rotate(0deg);
+    }
+    100% {
+      filter: hue-rotate(360deg);
+    }
+  }
+
+  .wrapper h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 35px;
+    color: #00f9ff;
+    text-shadow: 0 0 5px #00f9ff;
+  }
+
+  .input-box {
+    position: relative;
+    margin-bottom: 25px;
+  }
+
+  .input-box input {
+    width: 100%;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #0ff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .input-box input:focus {
+    outline: none;
+    border-color: #00f9ff;
+    box-shadow: 0 0 10px rgba(0, 249, 255, 0.3);
+    background-color: rgba(0, 255, 255, 0.08);
+  }
+
+  .input-box input::placeholder {
+    color: rgba(0, 255, 255, 0.5);
+  }
+
+  .input-box i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #0ff;
+    opacity: 0.6;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 20px;
+    color: rgba(0, 255, 255, 0.8);
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: #00f9ff;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #00f9ff, #007cf0);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+  }
+
+  .links {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 13px;
+  }
+
+  .links a {
+    color: #00f9ff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .links a:hover {
+    color: #fff;
+    text-shadow: 0 0 5px #00f9ff;
+  }
+
+  #strengthMeter {
+    height: 6px;
+    background: rgba(0, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: -10px;
+    margin-bottom: 12px;
+  }
+
+  #strengthBar {
+    height: 100%;
+    width: 0%;
+    background: #ff4d4d;
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 4px;
+  }
+
+  #strengthText {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+
+  #message {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 20px;
+  }
+
+  @media (max-width: 480px) {
+    .wrapper {
+      width: 92%;
+      padding: 40px 20px;
+    }
+  }
+</style>
+</body>
+</html>

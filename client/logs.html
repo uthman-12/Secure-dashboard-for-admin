@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs | Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/logs.png" type="image/png">
+
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <h2>Admin</h2>
+      <ul>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="users.html">Users</a></li>
+        <li><a href="logs.html" class="active">Logs</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" id="logout" class="logout">Logout</a></li>
+      </ul>
+    </aside>
+    <main class="main-content">
+      <header class="navbar">
+        <h1>Logs</h1>
+      </header>
+      <div id="admin-tools"></div>
+      <section>
+        <ul id="logs-list" class="logs-list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || "null");
+    if (!currentUser || !currentUser.token) {
+      window.location.href = "index.html";
+    }
+
+    const token = currentUser.token;
+
+    document.getElementById('logout').onclick = function(e) {
+      e.preventDefault();
+      localStorage.removeItem('currentUser');
+      window.location.href = "index.html";
+    };
+
+    function formatDateTime(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function renderLogs() {
+      try {
+        const res = await fetch('/api/admin/logs', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error("Unauthorized");
+
+        const logs = await res.json();
+        const logsList = document.getElementById('logs-list');
+        logsList.innerHTML = '';
+
+        if (logs.length > 0) {
+          logs.slice(-50).reverse().forEach(log => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span style="color:#23272b;">${escapeHTML(log.action)}</span> <span style="color:#888;font-size:0.97em;">(${escapeHTML(log.user || "system")} - ${formatDateTime(log.time)})</span>`;
+            logsList.appendChild(li);
+          });
+        } else {
+          logsList.innerHTML = '<li style="color:#888;">No logs yet.</li>';
+        }
+
+      } catch (err) {
+        console.error("Error fetching logs:", err);
+        window.location.href = "index.html";
+      }
+    }
+
+    async function clearLogs() {
+      try {
+        const confirmClear = confirm("Are you sure you want to clear all logs?");
+        if (!confirmClear) return;
+
+        const res = await fetch('/api/admin/logs', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error("Delete failed");
+
+        renderLogs();
+      } catch (err) {
+        alert("Failed to clear logs.");
+        console.error(err);
+      }
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, function (m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[m];
+      });
+    }
+
+    // Add clear button for admin
+    if (currentUser.role && currentUser.role.toLowerCase() === "admin") {
+      const clearBtn = document.createElement('button');
+      clearBtn.textContent = "Clear All Logs";
+      clearBtn.className = "action-btn delete";
+      clearBtn.style.margin = "16px 0";
+      clearBtn.onclick = clearLogs;
+      document.getElementById('admin-tools').appendChild(clearBtn);
+    }
+
+    renderLogs();
+  </script>
+  <style>
+  /* Base Reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', 'Segoe UI', Arial, sans-serif;
+  }
+
+  body {
+    background: #0b0f1a;
+    color: #cbd5e1;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Dashboard Layout */
+  .dashboard {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: rgba(0, 16, 38, 0.7);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(0,255,255,0.2);
+    padding: 32px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    box-shadow: 2px 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  .sidebar h2 {
+    font-size: 1.8rem;
+    color: #00fff0;
+    margin-bottom: 36px;
+    text-shadow: 0 0 6px rgba(0,255,255,0.6);
+  }
+
+  .sidebar ul {
+    width: 100%;
+    list-style: none;
+  }
+
+  .sidebar ul li {
+    margin-bottom: 12px;
+  }
+
+  .sidebar ul li a {
+    display: block;
+    padding: 14px 28px;
+    color: #cbd5e1;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+  }
+
+  .sidebar ul li a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #00fff0, #0088ff);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar ul li a:hover::before,
+  .sidebar ul li a.active::before {
+    transform: scaleY(1);
+  }
+
+  .sidebar ul li a:hover,
+  .sidebar ul li a.active {
+    background: rgba(0,255,255,0.1);
+    color: #00fff0;
+  }
+
+  .sidebar ul li a.logout {
+    color: #ff5566;
+  }
+
+  /* Main Area */
+  .main-content {
+    flex: 1;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  /* Navbar */
+  .navbar {
+    background: rgba(0,16,38,0.7);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 20px rgba(0,255,255,0.08);
+    transition: background 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navbar h1 {
+    font-size: 2rem;
+    color: #00fff0;
+    text-shadow: 0 0 8px rgba(0,255,255,0.5);
+  }
+
+  /* Cards */
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .card {
+    background: rgba(0, 16, 38, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 255, 255, 0.08);
+    flex: 1;
+    min-width: 200px;
+    padding: 30px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 255, 255, 0.2);
+  }
+
+  .card span {
+    display: block;
+    font-size: 1rem;
+    color: #a0aec0;
+  }
+
+  .card strong {
+    font-size: 2.2rem;
+    color: #00fff0;
+    margin-top: 8px;
+  }
+
+  /* Section Titles */
+  .section-title {
+    font-size: 1.3rem;
+    color: #00fff0;
+    margin-bottom: 8px;
+  }
+
+  /* Logs List */
+  .logs-list {
+    background: rgba(0, 16, 38, 0.5);
+    backdrop-filter: blur(20px);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 20px rgba(0, 255, 255, 0.08);
+    list-style: none;
+    font-size: 1.05rem;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .logs-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.2s ease, transform 0.2s ease;
+    color: #cbd5e1;
+  }
+
+  .logs-list li:hover {
+    background: rgba(0,255,255,0.05);
+    transform: scale(1.01);
+  }
+
+  .logs-list li:last-child {
+    border-bottom: none;
+  }
+
+  /* Table Section */
+  .table-section {
+    background: rgba(0, 16, 38, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 24px;
+    overflow-x: auto;
+    box-shadow: 0 2px 20px rgba(0,255,255,0.08);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+    color: #cbd5e1;
+  }
+
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: left;
+  }
+
+  th {
+    background: rgba(0, 16, 38, 0.7);
+    color: #00fff0;
+    font-weight: 600;
+  }
+
+  tr:hover td {
+    background: rgba(0,255,255,0.05);
+  }
+
+  /* Action Buttons */
+  .action-btn {
+    background: #00fff0;
+    color: #0b0f1a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: #00ccbf;
+  }
+
+  .action-btn.delete {
+    background: #ff5566;
+    color: #fff;
+  }
+
+  .action-btn.delete:hover {
+    background: #e64556;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    background: rgba(0, 16, 38, 0.6);
+    backdrop-filter: blur(20px);
+    margin: 8% auto;
+    max-width: 420px;
+    width: 90%;
+    padding: 24px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 255, 255, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: slideDown 0.3s ease;
+  }
+
+  .modal-content h3 {
+    color: #00fff0;
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .modal-content input,
+  .modal-content select {
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,255,255,0.2);
+    border-radius: 8px;
+    color: #cbd5e1;
+    font-size: 1rem;
+  }
+
+  .modal-content input::placeholder {
+    color: #94a3b8;
+  }
+
+  .modal-content button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .modal-content .save-btn {
+    background: #00fff0;
+    color: #0b0f1a;
+  }
+
+  .modal-content .cancel-btn {
+    background: #334155;
+    color: #cbd5e1;
+  }
+
+  .modal-content .cancel-btn:hover {
+    background: #475569;
+  }
+
+  /* Scrollbars */
+  .logs-list::-webkit-scrollbar,
+  .table-section::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .logs-list::-webkit-scrollbar-thumb,
+  .table-section::-webkit-scrollbar-thumb {
+    background: rgba(0,255,255,0.3);
+    border-radius: 4px;
+  }
+
+  /* Animations */
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 900px) {
+    .main-content {
+      padding: 24px;
+    }
+
+    .cards {
+      flex-direction: column;
+    }
+
+    table {
+      min-width: 100%;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .dashboard {
+      flex-direction: column;
+    }
+
+    .sidebar {
+      width: 100%;
+      flex-direction: row;
+      justify-content: space-around;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0,255,255,0.05);
+      border-right: none;
+      border-bottom: 1px solid rgba(0,255,255,0.2);
+    }
+
+    .sidebar h2 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .sidebar ul {
+      display: flex;
+      flex-direction: row;
+      width: auto;
+    }
+
+    .sidebar ul li {
+      margin: 0 6px;
+    }
+
+    .sidebar ul li a {
+      padding: 10px 14px;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+    }
+
+    .sidebar ul li a:hover,
+    .sidebar ul li a.active {
+      border-bottom: 2px solid #00fff0;
+    }
+
+    .main-content {
+      padding: 20px;
+    }
+
+    .modal-content {
+      margin: 30% auto;
+    }
+  }
+</style>
+
+</body>
+</html>

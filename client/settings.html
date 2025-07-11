@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logs | Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="images/logs.png" type="image/png">
+
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      background: #0b0f1a;
+      color: #cbd5e1;
+    }
+    .dashboard { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px;
+      background: rgba(0, 16, 38, 0.7);
+      backdrop-filter: blur(20px);
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid rgba(0,255,255,0.2);
+    }
+    .sidebar h2 {
+      color: #00fff0;
+      font-size: 1.8rem;
+      margin-bottom: 36px;
+    }
+    .sidebar ul {
+      list-style: none;
+      width: 100%;
+      padding: 0;
+    }
+    .sidebar ul li a {
+      display: block;
+      padding: 14px 28px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+      transition: 0.3s;
+    }
+    .sidebar ul li a.active,
+    .sidebar ul li a:hover {
+      color: #00fff0;
+      background: rgba(0,255,255,0.1);
+      border-left: 4px solid #00fff0;
+    }
+    .sidebar ul li a.logout {
+      color: #ff5566;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,16,38,0.7);
+      padding: 20px 30px;
+      border-radius: 12px;
+      color: #00fff0;
+    }
+
+    .logs-list {
+      background: rgba(0, 16, 38, 0.5);
+      backdrop-filter: blur(20px);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 20px rgba(0, 255, 255, 0.08);
+      list-style: none;
+      font-size: 1.05rem;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .logs-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #cbd5e1;
+    }
+
+    .logs-list li:last-child {
+      border-bottom: none;
+    }
+
+    #clear-logs-btn {
+      background: #dc3545;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .dashboard {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 16px;
+        border-right: none;
+        border-bottom: 1px solid rgba(0,255,255,0.2);
+      }
+      .main-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <h2>Admin</h2>
+      <ul>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="users.html">Users</a></li>
+        <li><a href="logs.html" class="active">Logs</a></li>
+        <li><a href="settings.html">Settings</a></li>
+        <li><a href="#" id="logout" class="logout">Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <h1>Logs</h1>
+        <span id="welcome-user"></span>
+      </header>
+
+      <button id="clear-logs-btn" style="display: none;">Clear All Logs</button>
+      <ul id="logs-list" class="logs-list"></ul>
+    </main>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('jwtToken');
+
+    if (!token) {
+      window.location.href = "index.html";
+    }
+
+    async function fetchUserInfo() {
+      try {
+        const res = await fetch('/api/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!res.ok) throw new Error('Unauthorized');
+        const user = await res.json();
+        document.getElementById('welcome-user').textContent = `Welcome, ${user.username}`;
+        if (user.role === 'admin') {
+          document.getElementById('clear-logs-btn').style.display = 'inline-block';
+        }
+      } catch (err) {
+        window.location.href = "index.html";
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const logs = await res.json();
+        const logsList = document.getElementById('logs-list');
+        logsList.innerHTML = '';
+        if (logs.length > 0) {
+          logs.slice(-50).reverse().forEach(log => {
+            const li = document.createElement('li');
+            const time = new Date(log.time).toLocaleString();
+            li.innerHTML = `<strong>${escapeHTML(log.action)}</strong> <span style="color:#888;font-size:0.9em;">(${escapeHTML(log.user || "system")} - ${time})</span>`;
+            logsList.appendChild(li);
+          });
+        } else {
+          logsList.innerHTML = '<li>No logs found.</li>';
+        }
+      } catch (err) {
+        console.error('Error loading logs:', err);
+      }
+    }
+
+    function escapeHTML(str) {
+      return str?.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]) || '';
+    }
+
+    document.getElementById('clear-logs-btn').addEventListener('click', async () => {
+      if (confirm('Are you sure you want to clear all logs?')) {
+        try {
+          const res = await fetch('/api/logs', {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            fetchLogs();
+          } else {
+            alert('Failed to clear logs.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error clearing logs.');
+        }
+      }
+    });
+
+    document.getElementById('logout').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('jwtToken');
+      window.location.href = "index.html";
+    });
+
+    fetchUserInfo();
+    fetchLogs();
+  </script>
+</body>
+</html>
