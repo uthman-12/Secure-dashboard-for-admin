@@ -153,7 +153,8 @@
       }
 
       try {
-        const res = await fetch("http://localhost:5000/api/auth/register", {
+        const res = await fetch("http://localhost:5000/api/admin/register", {
+
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -176,7 +177,6 @@
         }
       } catch (err) {
         message.textContent = "Server error. Try again later.";
-        console.error(err);
       }
       submitBtn.disabled = false;
       btnText.textContent = "Create Account";

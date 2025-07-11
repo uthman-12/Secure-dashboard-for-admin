@@ -1,0 +1,203 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #000c1f, #000000);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .wrapper {
+    width: 460px;
+    background: rgba(0, 255, 255, 0.05);
+    border: 2px solid rgba(0, 255, 255, 0.2);
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    padding: 45px 40px;
+    animation: zoomIn 0.6s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes zoomIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .wrapper::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00f9ff, #006eff, #0f0, #ff00ff);
+    z-index: -1;
+    filter: blur(20px);
+    opacity: 0.2;
+    border-radius: 20px;
+    animation: neonBorder 5s linear infinite;
+  }
+
+  @keyframes neonBorder {
+    0% {
+      filter: hue-rotate(0deg);
+    }
+    100% {
+      filter: hue-rotate(360deg);
+    }
+  }
+
+  .wrapper h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 35px;
+    color: #00f9ff;
+    text-shadow: 0 0 5px #00f9ff;
+  }
+
+  .input-box {
+    position: relative;
+    margin-bottom: 25px;
+  }
+
+  .input-box input {
+    width: 100%;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #0ff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .input-box input:focus {
+    outline: none;
+    border-color: #00f9ff;
+    box-shadow: 0 0 10px rgba(0, 249, 255, 0.3);
+    background-color: rgba(0, 255, 255, 0.08);
+  }
+
+  .input-box input::placeholder {
+    color: rgba(0, 255, 255, 0.5);
+  }
+
+  .input-box i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #0ff;
+    opacity: 0.6;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 20px;
+    color: rgba(0, 255, 255, 0.8);
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: #00f9ff;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #00f9ff, #007cf0);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+  }
+
+  .links {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 13px;
+  }
+
+  .links a {
+    color: #00f9ff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .links a:hover {
+    color: #fff;
+    text-shadow: 0 0 5px #00f9ff;
+  }
+
+  #strengthMeter {
+    height: 6px;
+    background: rgba(0, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: -10px;
+    margin-bottom: 12px;
+  }
+
+  #strengthBar {
+    height: 100%;
+    width: 0%;
+    background: #ff4d4d;
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 4px;
+  }
+
+  #strengthText {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+
+  #message {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 20px;
+  }
+
+  @media (max-width: 480px) {
+    .wrapper {
+      width: 92%;
+      padding: 40px 20px;
+    }
+  }
+</style>

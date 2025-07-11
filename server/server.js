@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const cors = require("cors");
+const dotenv = require("dotenv");
 
 // Route imports
 const authRoutes = require("./routes/authRoutes");     // User login/signup
@@ -31,3 +31,8 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+app.use(cors({
+  origin: "http://127.0.0.1:5500", // 👈 matches Live Server
+  credentials: true
+}));

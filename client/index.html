@@ -7,18 +7,194 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="icon" href="images/login.png" type="image/png">
   <style>
-    /* Keep all your original CSS styles here (unchanged) */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: radial-gradient(circle at center, #000c1f, #000000);
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      width: 460px;
+      background: rgba(0, 255, 255, 0.05);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-radius: 18px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      padding: 45px 40px;
+      animation: zoomIn 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .wrapper::before {
+      content: "";
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #00f9ff, #006eff, #0f0, #ff00ff);
+      z-index: -1;
+      filter: blur(20px);
+      opacity: 0.2;
+      border-radius: 20px;
+      animation: neonBorder 5s linear infinite;
+    }
+
+    @keyframes neonBorder {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    .wrapper h2 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 35px;
+      color: #00f9ff;
+      text-shadow: 0 0 5px #00f9ff;
+    }
+
+    .input-box {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 12px;
+      color: #0ff;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .input-box input:focus {
+      outline: none;
+      border-color: #00f9ff;
+      box-shadow: 0 0 10px rgba(0, 249, 255, 0.3);
+      background-color: rgba(0, 255, 255, 0.08);
+    }
+
+    .input-box input::placeholder {
+      color: rgba(0, 255, 255, 0.5);
+    }
+
+    .input-box i {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #0ff;
+      opacity: 0.6;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 20px;
+      color: rgba(0, 255, 255, 0.8);
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      margin-right: 10px;
+      accent-color: #00f9ff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #00f9ff, #007cf0);
+      border: none;
+      border-radius: 14px;
+      color: #000;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+    }
+
+    .links {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+    }
+
+    .links a {
+      color: #00f9ff;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .links a:hover {
+      color: #fff;
+      text-shadow: 0 0 5px #00f9ff;
+    }
+
+    #strengthMeter {
+      height: 6px;
+      background: rgba(0, 255, 255, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: -10px;
+      margin-bottom: 12px;
+    }
+
+    #strengthBar {
+      height: 100%;
+      width: 0%;
+      background: #ff4d4d;
+      transition: width 0.3s ease, background 0.3s ease;
+      border-radius: 4px;
+    }
+
+    #message {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .wrapper {
+        width: 92%;
+        padding: 40px 20px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <form class="login-form" id="loginForm" autocomplete="off" aria-labelledby="loginHeading">
-      <h2 id="loginHeading">Admin Login</h2>
-
-      <div class="input-box">
-        <i class="fa-solid fa-user"></i>
-        <input type="text" placeholder="Username" id="Username" required />
-      </div>
+    <form id="loginForm" autocomplete="off">
+      <h2>Admin Login</h2>
 
       <div class="input-box">
         <i class="fa-solid fa-envelope"></i>
@@ -30,10 +206,7 @@
         <input type="password" placeholder="Password" id="Password" required />
       </div>
 
-      <div id="strengthMeter" aria-hidden="true">
-        <div id="strengthBar"></div>
-      </div>
-      <span id="strengthText" aria-live="polite"></span>
+      <div id="strengthMeter"><div id="strengthBar"></div></div>
 
       <div class="checkbox-container">
         <input type="checkbox" id="showPassword" />
@@ -47,282 +220,93 @@
         <p><a href="#" id="forgotPassword">Forgot Password?</a></p>
       </div>
 
-      <p id="login-message" aria-live="polite"></p>
+      <div id="message"></div>
     </form>
   </div>
 
- <script>
-  document.getElementById("showPassword").addEventListener("change", function () {
-    const pwd = document.getElementById("Password");
-    pwd.type = this.checked ? "text" : "password";
-  });
+  <script>
+    // Show/Hide password toggle
+    document.getElementById("showPassword").addEventListener("change", function () {
+      const pwd = document.getElementById("Password");
+      pwd.type = this.checked ? "text" : "password";
+    });
 
-  document.getElementById("loginForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const username = document.getElementById("Username").value.trim();
-    const password = document.getElementById("Password").value;
-    const message = document.getElementById("login-message");
+    // Password strength meter
+    const passwordInput = document.getElementById("Password");
+    const strengthBar = document.getElementById("strengthBar");
 
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
+    passwordInput.addEventListener("input", () => {
+      const val = passwordInput.value;
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[a-z]/.test(val)) score++;
+      if (/\d/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
 
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        message.style.color = "#28a745";
-        message.textContent = "Login successful. Redirecting...";
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1000);
-      } else {
+      const percent = (score / 5) * 100;
+      let color = "#ff4d4d"; // Default weak
+      if (percent >= 80) color = "#28a745";     // Strong
+      else if (percent >= 60) color = "#ffc107"; // Medium
+
+      strengthBar.style.width = percent + "%";
+      strengthBar.style.background = color;
+    });
+
+    // Login form submission
+    const loginForm = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = document.getElementById("Email").value.trim();
+      const password = document.getElementById("Password").value;
+
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          message.style.color = "#28a745";
+          message.textContent = "Login successful. Redirecting...";
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+        } else {
+          message.style.color = "#dc3545";
+          message.textContent = data.message || "Login failed.";
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        message.textContent = "Server error. Try again later.";
         message.style.color = "#dc3545";
-        message.textContent = data.message || "Login failed.";
       }
-    } catch (err) {
-      console.error(err);
-      message.textContent = "Server error. Try again later.";
-    }
-  });
+    });
 
-  const passwordInput = document.getElementById("Password");
-  const strengthBar = document.getElementById("strengthBar");
-  const strengthText = document.getElementById("strengthText");
+    // Forgot password handler
+    document.getElementById("forgotPassword").addEventListener("click", async function () {
+      const email = prompt("Enter your admin email:");
+      if (!email) return;
 
-  passwordInput.addEventListener("input", () => {
-    const val = passwordInput.value;
-    let score = 0;
-    if (val.length >= 6) score++;
-    if (/[A-Z]/.test(val)) score++;
-    if (/[a-z]/.test(val)) score++;
-    if (/\d/.test(val)) score++;
-    if (/[^A-Za-z0-9]/.test(val)) score++;
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
 
-    const percent = (score / 5) * 100;
-    strengthBar.style.width = percent + "%";
-
-    if (score <= 2) {
-      strengthBar.style.background = "#dc3545";
-      strengthText.style.color = "#dc3545";
-      strengthText.textContent = "Strength: Weak";
-    } else if (score === 3) {
-      strengthBar.style.background = "#ffc107";
-      strengthText.style.color = "#ffc107";
-      strengthText.textContent = "Strength: Medium";
-    } else {
-      strengthBar.style.background = "#28a745";
-      strengthText.style.color = "#28a745";
-      strengthText.textContent = "Strength: Strong";
-    }
-
-    if (val.length === 0) strengthText.textContent = "";
-  });
-</script>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Orbitron', sans-serif;
-  }
-
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: radial-gradient(circle at center, #000c1f, #000000);
-    color: #fff;
-    overflow: hidden;
-  }
-
-  .wrapper {
-    width: 460px;
-    background: rgba(0, 255, 255, 0.05);
-    border: 2px solid rgba(0, 255, 255, 0.2);
-    border-radius: 18px;
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    padding: 45px 40px;
-    animation: zoomIn 0.6s ease;
-    position: relative;
-    z-index: 1;
-  }
-
-  @keyframes zoomIn {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .wrapper::before {
-    content: "";
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #00f9ff, #006eff, #0f0, #ff00ff);
-    z-index: -1;
-    filter: blur(20px);
-    opacity: 0.2;
-    border-radius: 20px;
-    animation: neonBorder 5s linear infinite;
-  }
-
-  @keyframes neonBorder {
-    0% {
-      filter: hue-rotate(0deg);
-    }
-    100% {
-      filter: hue-rotate(360deg);
-    }
-  }
-
-  .wrapper h2 {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 35px;
-    color: #00f9ff;
-    text-shadow: 0 0 5px #00f9ff;
-  }
-
-  .input-box {
-    position: relative;
-    margin-bottom: 25px;
-  }
-
-  .input-box input {
-    width: 100%;
-    padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    border-radius: 12px;
-    color: #0ff;
-    font-size: 14px;
-    transition: all 0.3s ease;
-  }
-
-  .input-box input:focus {
-    outline: none;
-    border-color: #00f9ff;
-    box-shadow: 0 0 10px rgba(0, 249, 255, 0.3);
-    background-color: rgba(0, 255, 255, 0.08);
-  }
-
-  .input-box input::placeholder {
-    color: rgba(0, 255, 255, 0.5);
-  }
-
-  .input-box i {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #0ff;
-    opacity: 0.6;
-  }
-
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    margin-bottom: 20px;
-    color: rgba(0, 255, 255, 0.8);
-  }
-
-  .checkbox-container input[type="checkbox"] {
-    margin-right: 10px;
-    accent-color: #00f9ff;
-  }
-
-  .btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #00f9ff, #007cf0);
-    border: none;
-    border-radius: 14px;
-    color: #000;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
-  }
-
-  .links {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 13px;
-  }
-
-  .links a {
-    color: #00f9ff;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s;
-  }
-
-  .links a:hover {
-    color: #fff;
-    text-shadow: 0 0 5px #00f9ff;
-  }
-
-  #strengthMeter {
-    height: 6px;
-    background: rgba(0, 255, 255, 0.2);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: -10px;
-    margin-bottom: 12px;
-  }
-
-  #strengthBar {
-    height: 100%;
-    width: 0%;
-    background: #ff4d4d;
-    transition: width 0.3s ease, background 0.3s ease;
-    border-radius: 4px;
-  }
-
-  #strengthText {
-    font-size: 13px;
-    color: #aaa;
-    margin-bottom: 10px;
-  }
-
-  #message {
-    text-align: center;
-    margin-top: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    min-height: 20px;
-  }
-
-  @media (max-width: 480px) {
-    .wrapper {
-      width: 92%;
-      padding: 40px 20px;
-    }
-  }
-</style>
+        const data = await res.json();
+        alert(res.ok ? "OTP sent to your email." : (data.message || "Failed to send OTP."));
+      } catch (err) {
+        console.error("OTP error:", err);
+        alert("Something went wrong. Try again.");
+      }
+    });
+  </script>
 </body>
 </html>
